@@ -1,0 +1,59 @@
+---
+title: "Capstone Statistical Report"
+output:
+  html_document: default
+  word_document: default
+---
+```{r}
+suppressMessages(library(ggplot2))
+suppressMessages(library(dplyr))
+suppressMessages(library(tidyr))
+suppressMessages(library(readr))
+#File load
+suppressMessages(mortgage <- read_csv("C:/Home mortgage.csv"))
+
+#Data Wrangle
+mortgage_refine <- subset(mortgage, action_taken_name!="File closed for incompleteness")
+mortgage_refine <- subset(mortgage, action_taken_name!="Application withdrawn by applicant")
+fillColor = "#FFA07A"
+fillColor2 = "#666666"
+
+```
+
+This Capstone Data focuses on the New York Mortgage and its affected/affecting variables. I am utilizing a dataset "mortgage"
+
+Through various plotting, I have found various interesting points of interest.
+
+For the basic plots to start:
+```{r}
+MortgageDenial1 <- mortgage_refine %>%
+  group_by(denial_reason_name_1) %>%
+  summarise(SummaryDenial1 = n()) %>%
+  drop_na() %>%
+  arrange(desc(SummaryDenial1))
+
+ggplot(MortgageDenial1, aes(x= denial_reason_name_1, y= SummaryDenial1)) +
+  geom_bar(stat="identity", col="white", fill = fillColor) +
+  geom_text(aes(x=denial_reason_name_1, y=1,
+                label = paste(SummaryDenial1, sep= "")),
+            hjust = -.1, vjust = .5, size = 3, col="black", fontface = "bold")+
+  labs(x= "Denial Reasons", y= "Total Denial Count",
+       title = "Denial Count") +
+  coord_flip()
+```
+  Above plot shows the denial rating and the most popular reason for the denials.
+```{r}
+  MortgageRaceWONA <- subset(mortgage_refine, applicant_race_name_1!="Not applicable") %>% subset(applicant_race_name_1!= "Information not provided by applicant in mail, Internet, or telephone application")
+
+ggplot(data = MortgageRaceWONA, aes(x= hud_median_family_income , y = loan_amount_000s))+
+  geom_point(aes(color = applicant_race_name_1))+
+  scale_x_continuous("Median Family Income")+
+  scale_y_continuous("Loan Amount in 000s")+
+  theme_bw()+
+  theme(legend.position = "none")+
+  labs(title = "Income and loan amount based on Race")+
+  facet_wrap(~ applicant_race_name_1)+
+  guides(linetype = guide_legend(nrow=2))
+```
+  The next plot shows the most interest. Based on the data, the non-"white" race shows more caution in taking higher amount of loan, regardless of the income, while the "white" race has higher rate of loan applications for various amounts. The plot also shows that "white" race will also apply for higher loan at ~$72,000 income and ~$100K+ income.
+  
